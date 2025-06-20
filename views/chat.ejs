@@ -1,0 +1,144 @@
+<div class="min-h-screen bg-beige">
+    <div class="drawer">
+        <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+        <div class="drawer-content">
+            <%- include('header') %>
+            <div class="container mx-auto p-4">
+                <h1 class="text-2xl font-bold mb-4">Chat</h1>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- User List Card -->
+                    <div class="card bg-base-100 shadow-xl">
+                        <div class="card-body">
+                            <h2 class="card-title mb-4">Chats</h2>
+                            <ul id="chatUserList">
+                                <% if (users && users.length > 0) { %>
+                                    <% users.forEach(function(u) { %>
+                                        <li class="mb-2">
+                                            <a href="/chat/<%= u.id %>" class="flex items-center gap-3 p-2 rounded hover:bg-blue-100 <%= selectedUser && selectedUser.id === u.id ? 'bg-blue-200 font-bold' : '' %>">
+                                                <span class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-200 text-blue-600 font-bold text-xl border-2 border-blue-600">
+                                                    <%= u.username ? u.username[0].toUpperCase() : '?' %>
+                                                </span>
+                                                <span><%= u.username %></span>
+                                            </a>
+                                        </li>
+                                    <% }); %>
+                                <% } else { %>
+                                    <li class="text-gray-400">No available chats. Make a service request to start chatting.</li>
+                                <% } %>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Main Chat Card -->
+                    <div class="card bg-base-100 shadow-xl col-span-2 flex flex-col">
+                        <div class="card-body flex flex-col h-[500px]">
+                            <% if (restriction) { %>
+                                <div class="flex-1 flex flex-col items-center justify-center">
+                                    <div class="text-red-500 font-bold text-lg mb-2"><%= restriction %></div>
+                                    <a href="/services" class="btn btn-primary">Request a Service</a>
+                                </div>
+                            <% } else { %>
+                                <h2 class="card-title mb-2 chat-header-user flex items-center gap-4">
+                                    <% if (selectedUser) { %>
+                                        <% if (selectedUser.profile_picture) { %>
+                                            <span class="chat-header-photo">
+                                                <img src="<%= selectedUser.profile_picture %>" alt="<%= selectedUser.username %>" />
+                                            </span>
+                                        <% } else { %>
+                                            <span class="chat-header-photo chat-header-initial">
+                                                <%= selectedUser.username ? selectedUser.username[0].toUpperCase() : '?' %>
+                                            </span>
+                                        <% } %>
+                                        <span class="text-xl font-bold"><%= selectedUser.username %></span>
+                                        <% if (selectedUserLastActive) { %>
+                                            <% const now = new Date();
+                                               const lastActive = new Date(selectedUserLastActive);
+                                               const diffMs = now - lastActive;
+                                               const diffMin = Math.floor(diffMs / 60000);
+                                            %>
+                                            <% if (diffMin < 2) { %>
+                                                <span class="ml-2 flex items-center gap-1 text-green-600 font-medium"><span class="online-dot"></span>Online</span>
+                                            <% } else { %>
+                                                <span class="ml-2 text-gray-400 text-sm">Last seen <%= diffMin %> min ago</span>
+                                            <% } %>
+                                        <% } %>
+                                    <% } else { %>
+                                        Chat with ...
+                                    <% } %>
+                                </h2>
+                                <div id="chatMessages" class="flex-1 overflow-y-auto mb-4 bg-gray-50 p-2 rounded flex flex-col gap-2">
+                                    <% if (messages && messages.length > 0) { %>
+                                        <% messages.forEach(function(msg) { %>
+                                            <div class="flex <%= msg.sender_id === user.id ? 'justify-end' : 'justify-start' %>">
+                                                <div class="chat-bubble <%= msg.sender_id === user.id ? 'chat-bubble-sent' : 'chat-bubble-received' %> chat-bubble-animate">
+                                                    <span class="msg-content"><%- msg.message %></span>
+                                                    <div class="flex items-center justify-end gap-1 mt-1 text-xs">
+                                                        <span class="text-gray-300"><%= new Date(msg.created_at).toLocaleTimeString() %></span>
+                                                        <% if (msg.sender_id === user.id) { %>
+                                                            <% if (msg.is_read) { %>
+                                                                <span class="msg-status msg-status-read" title="Read">&#10003;&#10003;</span>
+                                                            <% } else { %>
+                                                                <span class="msg-status msg-status-delivered" title="Delivered">&#10003;&#10003;</span>
+                                                            <% } %>
+                                                        <% } %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <% }); %>
+                                    <% } else { %>
+                                        <div class="text-gray-400 text-center">No messages yet.</div>
+                                    <% } %>
+                                </div>
+                                <% if (selectedUser) { %>
+                                <form id="chatForm" class="flex gap-2 mt-2">
+                                    <input type="hidden" name="receiver_id" value="<%= selectedUser.id %>">
+                                    <input type="text" name="message" id="chatInput" class="flex-1 input input-bordered" placeholder="Type a message..." required autocomplete="off">
+                                    <button type="submit" class="btn btn-primary">Send</button>
+                                </form>
+                                <% } %>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <%- include('footer') %>
+        </div>
+        <%- include('drawer') %>
+    </div>
+</div>
+<script>
+// Chat user drawer toggle for small screens
+const chatDrawerToggle = document.getElementById('chat-userlist-drawer');
+const chatUserDrawer = document.getElementById('chatUserDrawer');
+if (chatDrawerToggle && chatUserDrawer) {
+    chatDrawerToggle.addEventListener('change', function() {
+        if (chatDrawerToggle.checked) {
+            chatUserDrawer.style.display = 'block';
+        } else {
+            chatUserDrawer.style.display = 'none';
+        }
+    });
+    // Hide drawer when clicking outside (overlay)
+    document.querySelectorAll('.drawer-overlay').forEach(el => {
+        el.addEventListener('click', () => {
+            chatDrawerToggle.checked = false;
+            chatUserDrawer.style.display = 'none';
+        });
+    });
+    // On large screens, always show
+    function handleResize() {
+        if (window.innerWidth >= 768) {
+            chatUserDrawer.style.display = 'block';
+        } else if (!chatDrawerToggle.checked) {
+            chatUserDrawer.style.display = 'none';
+        }
+    }
+    window.addEventListener('resize', handleResize);
+    handleResize();
+}
+</script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+window.CURRENT_USER_ID = <%= Number(user.id) %>;
+window.RECEIVER_ID = <%= selectedUser ? Number(selectedUser.id) : null %>;
+</script>
+<script src="/js/chat.js"></script> 

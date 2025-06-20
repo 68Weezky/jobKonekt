@@ -1,0 +1,65 @@
+<div class="min-h-screen bg-beige">
+    <!-- Drawer -->
+    <div class="drawer">
+        <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+        
+        <!-- Drawer Content -->
+        <div class="drawer-content">
+            <%- include('header') %>
+            <!-- Page Content -->
+            <div class="container mx-auto p-4">
+                <h1 class="text-2xl font-bold mb-4">Edit Your Profile</h1>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Profile Form Card -->
+                    <div class="card bg-base-100 shadow-xl">
+                        <div class="card-body">
+                            <h2 class="card-title mb-4">User Information</h2>
+                            <form id="profileForm" enctype="multipart/form-data">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="form-group">
+                                        <label for="username">Username</label>
+                                        <input type="text" id="username" name="username" value="<%= user.username || '' %>" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="email">Email</label>
+                                        <input type="email" id="email" name="email" value="<%= user.email || '' %>" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="role">Role</label>
+                                        <input type="text" id="role" name="role" value="<%= user.role || '' %>" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="residential_area">Residential Area</label>
+                                        <input type="text" id="residential_area" name="residential_area" value="<%= user.residential_area || '' %>">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="profile_picture">Profile Picture</label>
+                                        <!-- <% if (user.profile_picture) { %>
+                                            <img src="<%= user.profile_picture %>" alt="Profile Picture" class="w-20 h-20 rounded-full mb-2 object-cover" />
+                                        <% } %> -->
+                                        <input type="file" id="profile_picture" name="profile_picture" accept="image/*">
+                                    </div>
+                                </div>
+                                <div class="form-group mt-4">
+                                    <label for="password">Change Password (leave blank to keep current)</label>
+                                    <input type="password" id="password" name="password">
+                                </div>
+                                <div class="mt-6">
+                                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                                </div>
+                            </form>
+                            <div id="profileMessage" class="mt-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <%- include('footer') %>
+        </div>
+
+        <!-- Drawer Side -->
+        <%- include('drawer') %>
+    </div>
+</div>
+
+<!-- Add profile.js -->
+<script src="/js/profile.js"></script>

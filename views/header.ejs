@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>jobKonekt</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-inner flex items-center justify-between">
+    <div class="flex items-center">
+      <img src="/images/logo.jpg" alt="jobKonekt Logo" class="h-10 w-auto mr-3" />
+      <h1 class="site-title">jobKonekt</h1>
+    </div>
+    <% if (typeof user !== 'undefined' && user) { %>
+      <a href="/profile" class="header-avatar-link" style="display: flex; align-items: center;">
+        <% if (user.profile_picture) { %>
+          <span class="header-avatar" style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; display: inline-block; border: 2px solid #4f46e5; background: #fff;">
+            <img src="<%= user.profile_picture %>" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block;" />
+          </span>
+        <% } else { %>
+          <span class="header-avatar" style="width: 40px; height: 40px; border-radius: 50%; background: #4f46e5; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; border: 2px solid #4f46e5;">
+            <%= (user.username || '').split(' ').map(w => w[0]).join('').toUpperCase() %>
+          </span>
+        <% } %>
+      </a>
+    <% } %>
+  </div>
+</header> 
