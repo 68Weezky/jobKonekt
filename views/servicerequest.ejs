@@ -1,0 +1,63 @@
+<div class="min-h-screen bg-beige">
+    <!-- Drawer -->
+    <div class="drawer">
+        <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+        
+        <!-- Drawer Content -->
+        <div class="drawer-content">
+            <%- include('header') %>
+            <!-- Page Content -->
+            <div class="container mx-auto p-4">
+                <h1 class="text-2xl font-bold mb-4">Request a Service</h1>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Service Request Form Card -->
+                    <div class="card bg-base-100 shadow-xl">
+                        <div class="card-body">
+                            <h2 class="card-title mb-4">Service Request Form</h2>
+                            <form id="serviceRequestForm">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="form-group">
+                                        <label for="username">Username</label>
+                                        <input type="text" id="username" name="username" value="<%= user.username || '' %>" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="email">Email</label>
+                                        <input type="email" id="email" name="email" value="<%= user.email || '' %>" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="residential_area">Residential Area</label>
+                                        <input type="text" id="residential_area" name="residential_area" value="<%= user.residential_area || '' %>" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="professional_required">Professional Required</label>
+                                        <input type="text" id="professional_required" name="professional_required" value="<%= selected_role ? selected_role.charAt(0).toUpperCase() + selected_role.slice(1) : '' %>" readonly required>
+                                        <input type="hidden" name="professional_id" value="<%= professional_id || '' %>">
+                                    </div>
+                                </div>
+                                <div class="form-group mt-4">
+                                    <label for="job_description">Job Description</label>
+                                    <textarea id="job_description" name="job_description" rows="4" required></textarea>
+                                </div>
+                                <div class="form-group mt-4">
+                                    <label for="service_time">Time for Service</label>
+                                    <input type="datetime-local" id="service_time" name="service_time" required>
+                                </div>
+                                <div class="mt-6">
+                                    <button type="submit" class="btn btn-primary">Submit Request</button>
+                                </div>
+                            </form>
+                            <div id="serviceRequestMessage" class="mt-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <%- include('footer') %>
+        </div>
+
+        <!-- Drawer Side -->
+        <%- include('drawer') %>
+    </div>
+</div>
+
+<!-- Add serviceRequest.js -->
+<script src="/js/serviceRequest.js"></script> 
