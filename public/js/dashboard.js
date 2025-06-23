@@ -5,16 +5,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const drawerSide = document.querySelector('.drawer-side');
 
     // Close drawer when clicking outside
-    drawerOverlay.addEventListener('click', () => {
-        drawerToggle.checked = false;
-    });
+    if (drawerOverlay && drawerToggle) {
+        drawerOverlay.addEventListener('click', () => {
+            drawerToggle.checked = false;
+        });
+    }
 
     // Close drawer when pressing Escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && drawerToggle.checked) {
-            drawerToggle.checked = false;
-        }
-    });
+    if (drawerToggle) {
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && drawerToggle.checked) {
+                drawerToggle.checked = false;
+            }
+        });
+    }
 
     // Update user info in drawer
     function updateUserInfo() {
@@ -22,25 +26,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const userName = document.querySelector('.drawer-side h3');
         const userEmail = document.querySelector('.drawer-side p');
 
-        // Get user data from session
-        fetch('/api/user')
-            .then(response => response.json())
-            .then(data => {
-                if (data.user) {
-                    // Update avatar initials
-                    const initials = data.user.username
-                        .split(' ')
-                        .map(word => word[0])
-                        .join('')
-                        .toUpperCase();
-                    userAvatar.textContent = initials;
+        // Example: Fix for event listener error
+        const someElement = document.getElementById('some-id');
+        if (someElement) {
+            someElement.addEventListener('click', function() {
+                // ...
+            });
+        }
 
-                    // Update name and email
-                    userName.textContent = data.user.username;
-                    userEmail.textContent = data.user.email;
-                }
-            })
-            .catch(error => console.error('Error fetching user data:', error));
+        // Remove or comment out fetch to /api/user
+        // fetch('/api/user')
+        //   .then(res => res.json())
+        //   .then(data => { /* ... */ })
+        //   .catch(err => console.error('Error fetching user data:', err));
     }
 
     // Initialize dashboard
@@ -86,8 +84,67 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initial responsive check
-    handleResponsive();
+    if (drawerSide) handleResponsive();
 
     // Update on window resize
-    window.addEventListener('resize', handleResponsive);
+    window.addEventListener('resize', function() {
+        if (drawerSide) handleResponsive();
+    });
+
+    const slides = document.querySelectorAll('#dashboard-carousel .carousel-slide');
+    const indicators = document.querySelectorAll('#dashboard-carousel .carousel-indicator');
+    const prevBtn = document.getElementById('carousel-prev');
+    const nextBtn = document.getElementById('carousel-next');
+    let current = 0;
+    let interval = null;
+
+    function showSlide(idx) {
+        slides.forEach((slide, i) => {
+            slide.classList.toggle('active', i === idx);
+            slide.style.opacity = i === idx ? '1' : '0';
+        });
+        indicators.forEach((ind, i) => {
+            ind.classList.toggle('active', i === idx);
+        });
+        current = idx;
+    }
+
+    function nextSlide() {
+        showSlide((current + 1) % slides.length);
+    }
+
+    function prevSlide() {
+        showSlide((current - 1 + slides.length) % slides.length);
+    }
+
+    function startAuto() {
+        if (interval) clearInterval(interval);
+        interval = setInterval(nextSlide, 5000);
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            prevSlide();
+            startAuto();
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            nextSlide();
+            startAuto();
+        });
+    }
+    if (indicators.length > 0) {
+        indicators.forEach((ind, i) => {
+            ind.addEventListener('click', () => {
+                showSlide(i);
+                startAuto();
+            });
+        });
+    }
+
+    if (slides.length > 0) {
+        showSlide(0);
+        startAuto();
+    }
 }); 

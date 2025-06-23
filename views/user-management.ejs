@@ -1,0 +1,109 @@
+<div class="min-h-screen bg-beige">
+    <div class="drawer">
+        <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+        <div class="drawer-content">
+            <%- include('header') %>
+            <div class="container mx-auto p-4">
+                <h1 class="text-2xl font-bold mb-6">User Management</h1>
+                <div id="userCards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <% users.forEach(function(user) { 
+                        const isBanned = user.banned_until && new Date(user.banned_until) > new Date();
+                        const isAdmin = user.role === 'admin';
+                        const isSelf = user.id === (user_logged_in ? user_logged_in.id : (user ? user.id : null));
+                    %>
+                        <div class="card bg-base-100 shadow-xl flex flex-row items-center p-4 service-card relative" data-role="<%= user.role %>" data-username="<%= user.username.toLowerCase() %>" data-area="<%= (user.residential_area || '').toLowerCase() %>">
+                            <!-- Left: Profile Picture -->
+                            <div class="service-photo flex-shrink-0 flex items-center justify-center mr-4" style="width: 90px; height: 90px;">
+                                <% if (user.profile_picture) { %>
+                                    <img src="<%= user.profile_picture %>" alt="<%= user.username %>" class="object-cover w-full h-full rounded-full border-2 border-blue-600" />
+                                <% } else { %>
+                                    <span class="text-3xl text-gray-400 bg-gray-200 w-full h-full flex items-center justify-center rounded-full border-2 border-blue-600">
+                                        <%= user.username ? user.username[0].toUpperCase() : '?' %>
+                                    </span>
+                                <% } %>
+                            </div>
+                            <!-- Right: User Details -->
+                            <div class="flex-1 flex flex-col justify-between h-full pr-2">
+                                <div>
+                                    <h2 class="font-bold text-lg mb-1"><%= user.username %></h2>
+                                    <div class="text-sm text-gray-600 mb-1">Email: <span class="font-semibold"><%= user.email %></span></div>
+                                    <div class="text-sm text-gray-600 mb-1">Role: <span class="font-semibold"><%= user.role %></span></div>
+                                    <div class="text-sm text-gray-600 mb-1">Residential Area: <span class="font-semibold"><%= user.residential_area || 'N/A' %></span></div>
+                                    <div class="text-sm text-gray-600 mb-1">Rating: 
+                                        <% if (user.rating) { %>
+                                            <span class="font-semibold">
+                                                <% for(let i=1; i<=5; i++) { %>
+                                                    <% if (i <= Math.round(user.rating)) { %>
+                                                        <span class="star selected">&#9733;</span>
+                                                    <% } else { %>
+                                                        <span class="star">&#9733;</span>
+                                                    <% } %>
+                                                <% } %>
+                                                <%= user.rating %>/5
+                                            </span>
+                                        <% } else { %>
+                                            <span class="font-semibold">No ratings yet</span>
+                                        <% } %>
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        <% if (user.latest_review) { %>
+                                            <span class="italic">"<%= user.latest_review %>"</span>
+                                            <span class="ml-2">- <%= user.latest_review_rating %>/5</span>
+                                            <span class="ml-2 text-gray-400">(<%= user.latest_review_date && user.latest_review_date.toLocaleDateString ? user.latest_review_date.toLocaleDateString() : user.latest_review_date %>)</span>
+                                        <% } else { %>
+                                            No reviews yet
+                                        <% } %>
+                                    </div>
+                                    <% if (isBanned) { %>
+                                        <div class="text-sm text-red-600 font-semibold mb-1">Banned until: <%= new Date(user.banned_until).toLocaleString() %></div>
+                                    <% } %>
+                                </div>
+                                <!-- Ban Button -->
+                                <div class="card-actions-bottom">
+                                    <% if (!isAdmin && !isSelf) { %>
+                                        <button class="btn btn-error ban-btn" data-user-id="<%= user.id %>" data-username="<%= user.username %>">
+                                            <%= isBanned ? 'Update Ban' : 'Ban User' %>
+                                        </button>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            </div>
+            <%- include('footer') %>
+        </div>
+        <%- include('drawer') %>
+    </div>
+</div>
+
+<!-- Ban Modal -->
+<div id="banModal" class="fixed inset-0 hidden items-center justify-center z-50">
+    <!-- Modal Backdrop -->
+    <div class="absolute inset-0 bg-black opacity-50"></div>
+    <!-- Modal Content -->
+    <div class="relative bg-white p-6 rounded-lg shadow-xl w-96 mx-auto mt-20 z-10">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Ban User: <span id="banUsername" class="text-red-600"></span></h2>
+        <form id="banForm" class="space-y-4">
+            <input type="hidden" name="user_id" id="banUserId">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Ban Duration:</label>
+                <select name="duration" id="banDuration" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200">
+                    <option value="12">12 hours</option>
+                    <option value="24">24 hours</option>
+                    <option value="36">36 hours</option>
+                    <option value="72">3 days</option>
+                    <option value="168">1 week</option>
+                    <option value="720">1 month</option>
+                </select>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" id="banCancel" class="btn btn-secondary px-4 py-2 hover:bg-gray-100 transition-colors">Cancel</button>
+                <button type="submit" class="btn btn-error px-4 py-2 hover:bg-red-700 transition-colors">Ban User</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Include the external JavaScript file -->
+<script src="/js/user-management.js"></script> 

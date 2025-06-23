@@ -1,0 +1,8 @@
+<div class="flex flex-col items-center justify-center min-h-screen bg-red-50">
+    <div class="bg-white p-8 rounded shadow text-center">
+        <h1 class="text-2xl font-bold text-red-600 mb-4">Account Banned</h1>
+        <p class="mb-2">Your account is banned until:</p>
+        <p class="font-semibold text-lg mb-4"><%= new Date(banned_until).toLocaleString() %></p>
+        <p>You will regain access automatically after this time.</p>
+    </div>
+</div> 

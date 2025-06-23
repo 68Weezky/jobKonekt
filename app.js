@@ -117,6 +117,79 @@ const checkSession = async (req, res, next) => {
     }
 };
 
+// Middleware to block banned users
+app.use(async function checkBan(req, res, next) {
+    if (!req.session.user) return next();
+    try {
+        const result = await pool.query('SELECT banned_until FROM users WHERE id = $1', [req.session.user.id]);
+        if (result.rows.length && result.rows[0].banned_until && new Date(result.rows[0].banned_until) > new Date()) {
+            return res.render('banned', { banned_until: result.rows[0].banned_until });
+        }
+    } catch (e) {
+        // If DB error, allow access (fail open)
+    }
+    next();
+});
+
+function isAdmin(req, res, next) {
+    if (req.session.user && req.session.user.role === 'admin') return next();
+    return res.status(403).send('Forbidden');
+}
+
+app.get('/user-management', isAdmin, async (req, res) => {
+    try {
+        // First get all users
+        const result = await pool.query('SELECT id, username, email, role, residential_area, profile_picture, banned_until FROM users');
+        const users = result.rows;
+
+        // For each user, fetch their latest review and average rating
+        for (let user of users) {
+            // Get average rating
+            const avgRes = await pool.query(
+                'SELECT AVG(rating) as avg_rating FROM ratings_reviews WHERE user_id = $1',
+                [user.id]
+            );
+            user.rating = avgRes.rows[0].avg_rating ? parseFloat(avgRes.rows[0].avg_rating).toFixed(1) : null;
+
+            // Get latest review
+            const reviewRes = await pool.query(
+                'SELECT review, rating, created_at FROM ratings_reviews WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
+                [user.id]
+            );
+            if (reviewRes.rows.length > 0) {
+                user.latest_review = reviewRes.rows[0].review;
+                user.latest_review_rating = reviewRes.rows[0].rating;
+                user.latest_review_date = reviewRes.rows[0].created_at;
+            } else {
+                user.latest_review = null;
+                user.latest_review_rating = null;
+                user.latest_review_date = null;
+            }
+        }
+
+        res.render('user-management', { 
+            users: users, 
+            user: req.session.user,
+            user_logged_in: req.session.user 
+        });
+    } catch (error) {
+        console.error('Error loading user management:', error);
+        res.status(500).send('Failed to load user management page.');
+    }
+});
+
+app.post('/ban-user', isAdmin, express.json(), async (req, res) => {
+    const { user_id, duration } = req.body;
+    if (!user_id || !duration) return res.status(400).send('Missing data');
+    const banUntil = new Date(Date.now() + parseInt(duration) * 60 * 60 * 1000);
+    try {
+        await pool.query('UPDATE users SET banned_until = $1 WHERE id = $2', [banUntil, user_id]);
+        res.sendStatus(200);
+    } catch (error) {
+        res.status(500).send('Failed to ban user.');
+    }
+});
+
 // Render signup page
 app.get('/signup', (req, res) => {
     res.render('signup');
@@ -509,6 +582,15 @@ app.get('/notifications', checkSession, async (req, res) => {
     }
 });
 
-http.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+// API route to get current user session data
+app.get('/api/user', (req, res) => {
+  if (req.session && req.session.user) {
+    res.json(req.session.user);
+  } else {
+    res.status(401).json({ error: 'Not logged in' });
+  }
+});
+
+http.listen(port, '0.0.0.0', () => {
+    console.log(`Server running on http://0.0.0.0:${port}`);
 });
